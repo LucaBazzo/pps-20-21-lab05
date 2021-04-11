@@ -1,7 +1,8 @@
 package u05lab.code
 
-import java.util.concurrent.TimeUnit
+import u05lab.code.PerformanceUtils.measure
 
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 object PerformanceUtils {
@@ -24,16 +25,50 @@ object PerformanceUtils {
 object CollectionsTest extends App {
 
   /* Linear sequences: List, ListBuffer */
+  var lst = (1 to 1000000).toList
 
   /* Indexed sequences: Vector, Array, ArrayBuffer */
+  var vec = (1 to 1000000).toVector
 
   /* Sets */
+  var set = (1 to 1000000).toSet
 
   /* Maps */
+  var map = (1 to 1000000).map({e => (e, e + 10)}).toMap
+
+  /* Seqs */
+  var seq = (1 to 1000000)
+  measure("seq last"){ seq.last }
 
   /* Comparison */
   import PerformanceUtils._
-  val lst = (1 to 1000000).toList
-  val vec = (1 to 1000000).toVector
+
   assert( measure("lst last"){ lst.last } > measure("vec last"){ vec.last } )
+  assert( measure("map last"){ map.last } > measure("set last"){ set.last } )
+
+  println()
+
+  measure("seq filter"){ seq.filter(i => i < 1000) }
+  measure("lst filter"){ lst.filter(i => i < 1000) }
+  measure("vec filter"){ vec.filter(i => i < 1000) }
+  measure("map filter"){ map.filter(p => p._1 < 1000) }
+  measure("set filter"){ set.filter(i => i < 1000) }
+
+  println()
+
+  measure("seq count"){ seq.count(e => e % 2 == 0)}
+  measure("lst count"){ lst.count(e => e % 2 == 0) }
+  measure("vec count"){ vec.count(e => e % 2 == 0) }
+  measure("map count v1"){ map.count(e => e._1 % 2 == 0)}
+  measure("map count v2"){ map.count(e => e._1 > e._2)}
+  measure("set count"){ set.count(e => e % 2 == 0) }
+
+  println()
+
+  measure("seq map"){ seq.map(e => e % 2 == 0) }
+  measure("lst map"){ lst.map(e => e % 2 == 0) }
+  measure("vec map"){ vec.map(e => e % 2 == 0) }
+  measure("map map"){ map.map(e => (e._1, e._1 % 2 == 0)) }
+  measure("set map"){ set.map(e => e % 2 == 0) }
+
 }

@@ -1,6 +1,5 @@
-package u04lab.code
+package u05lab.code
 
-import scala.annotation.tailrec
 import scala.language.postfixOps // silence warnings
 
 sealed trait List[A] {
@@ -38,6 +37,8 @@ sealed trait List[A] {
   def reduce(op: (A,A)=>A): A
 
   def takeRight(n: Int): List[A]
+
+  def collect[A,B](pf: PartialFunction[A, B]): List[B]
 
   // right-associative construction: 10 :: 20 :: 30 :: Nil()
   def ::(head: A): List[A] = Cons(head,this)
@@ -115,19 +116,47 @@ trait ListImplementation[A] extends List[A] {
     case Nil() => Nil()
   }
 
-  override def zipRight: List[(A,Int)] = ??? // questions: what is the type of keyword ???
+  override def zipRight: List[(A,Int)] = {
+//    @tailrec
+//    def _zipRight(l: List[A], k: Int = 0, res: List[(A, Int)] = List.nil): List[(A, Int)] = l match {
+//      case h :: t => _zipRight(t, k+1, (h,k) :: res)
+//      case _ => res
+//    }
+//    _zipRight(this).reverse()
+      var k = -1
+      this.map(e => { k+=1; (e,k)})
+  }
 
-  override def partition(pred: A => Boolean): (List[A],List[A]) = ???
+  override def partition(pred: A => Boolean): (List[A],List[A]) = {
+    (this.filter(pred), this.filter((x: A) => !pred(x)))
+  }
 
-  override def span(pred: A => Boolean): (List[A],List[A]) = ???
+  override def span(pred: A => Boolean): (List[A],List[A]) = {
+    def _span(l: List[A], tmp: List[A] = List.nil): (List[A],List[A]) = l match {
+      case h :: t if pred(h) => _span(t, tmp.append(List(h)))
+      case _ => (tmp, l)
+    }
+    _span(this)
+  }
 
   /**
     *
     * @throws UnsupportedOperationException if the list is empty
     */
-  override def reduce(op: (A,A)=>A): A = ???
+  override def reduce(op: (A,A)=>A): A = this match {
+    case h :: t => t.foldLeft(h)(op)
+    case _ => throw new UnsupportedOperationException
+  }
 
-  override def takeRight(n: Int): List[A] = ???
+  override def takeRight(n: Int): List[A] = {
+    def _takeRight(l: List[A], n:Int, res: List[A] = List.nil): List[A] = l match {
+      case h :: t if n>0 => _takeRight(t, n-1, res.append(List(h)))
+      case _ => res
+    }
+    _takeRight(this.reverse(), n).reverse()
+  }
+
+  override def collect[A,B](pf: PartialFunction[A, B]): List[B] = ???
 }
 
 // Factories
